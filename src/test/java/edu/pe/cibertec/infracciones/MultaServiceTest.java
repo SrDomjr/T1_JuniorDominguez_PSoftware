@@ -32,7 +32,7 @@ public class MultaServiceTest {
     @Test
     void actualizarEstados_multaPendienteVencida_debeCambiarAVencida() {
 
-        // ARRANGE
+
         Multa multa = new Multa();
         multa.setEstado(EstadoMulta.PENDIENTE);
         multa.setFechaVencimiento(LocalDate.now().minusDays(1));
@@ -40,10 +40,10 @@ public class MultaServiceTest {
         when(multaRepository.findByEstado(EstadoMulta.PENDIENTE))
                 .thenReturn(List.of(multa));
 
-        // ACT
+
         multaService.actualizarEstados();
 
-        // ASSERT
+
         assertEquals(EstadoMulta.VENCIDA, multa.getEstado());
         verify(multaRepository, times(1)).save(multa);
     }

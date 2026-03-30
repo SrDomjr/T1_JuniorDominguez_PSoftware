@@ -29,14 +29,12 @@ public class InfractorServiceTest {
         @Test
         void verificarBloqueo_conDosVencidasYTresPagadas_noDebeBloquear() {
 
-            // ARRANGE
             Long infractorId = 1L;
             when(infractorRepository.contarMultasVencidas(infractorId)).thenReturn(2);
 
-            // ACT
             infractorService.verificarBloqueo(infractorId);
 
-            // ASSERT
+
             verify(infractorRepository, never()).save(any());
         }
     }
