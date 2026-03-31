@@ -1,4 +1,7 @@
 package edu.pe.cibertec.infracciones;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 import edu.pe.cibertec.infracciones.dto.PagoResponseDTO;
 import edu.pe.cibertec.infracciones.model.EstadoMulta;
@@ -45,11 +48,39 @@ class PagoServiceTest {
         when(multaRepository.findById(multaId)).thenReturn(Optional.of(multa));
         when(pagoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        // ACT
+
         PagoResponseDTO resultado = pagoService.procesarPago(multaId);
 
-        // ASSERT
+
         assertEquals(400.00, resultado.getMontoPagado());
         assertEquals(EstadoMulta.PAGADA, multa.getEstado());
+    }
+
+
+
+    @Test
+    void procesarPago_multaVencida12Dias_aplicaRecargo15() {
+        // ARRANGE
+        Long multaId = 2L;
+        Multa multa = new Multa();
+        multa.setMonto(500.00);
+        multa.setFechaEmision(LocalDate.now().minusDays(12));
+        multa.setFechaVencimiento(LocalDate.now().minusDays(2));
+        multa.setEstado(EstadoMulta.VENCIDA);
+
+        when(multaRepository.findById(multaId)).thenReturn(Optional.of(multa));
+        when(pagoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+
+        pagoService.procesarPago(multaId);
+
+
+        ArgumentCaptor<Pago> pagoCaptor = ArgumentCaptor.forClass(Pago.class);
+        verify(pagoRepository, times(1)).save(pagoCaptor.capture());
+
+        Pago pagoCaptured = pagoCaptor.getValue();
+        assertEquals(75.00, pagoCaptured.getRecargo());
+        assertEquals(0.00, pagoCaptured.getDescuentoAplicado());
+        assertEquals(575.00, pagoCaptured.getMontoPagado());
     }
 }
